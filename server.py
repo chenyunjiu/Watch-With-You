@@ -38,6 +38,7 @@ def getUsefulPort():
     if temp!=[]:
         id=temp[0]['id']
         dbcol.update_one({'id':id},{"$set":{'movie':filename,'person':2,'lastupdatetime':int(time.time())}})
+        dbcountcol.insert_one({'id':time.time(),'status':'Match'})
         return '%d:%d'%(id,2)
     temp=list(dbcol.find({'person':0}))
     if temp!=[]:
@@ -53,6 +54,7 @@ def getUsefulPort():
             newstate[x]=y
         dbcol.update_one({'id':id},{"$set":newstate})
         return '%d:%d'%(id,1)
+    dbcountcol.insert_one({'id':time.time(),'status':'NoUsefulPort'})
     return 'NoUsefulPort'
 
 @app.route('/Port/<id>',methods=['post'])
@@ -67,6 +69,7 @@ def running(id):
         return 'Wrong'
 
     oldstate=dbcol.find_one({'id':id})
+    dbcol.update_one({"id":id},{"$set":{'lastupdatetime':int(time.time())}})
     state=oldstate.copy()
 
     data={
@@ -205,7 +208,11 @@ if __name__ == '__main__':
     # mongodb初始化
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     mydb = myclient["watchwithyou"]
-    # dblist = myclient.list_database_names()
+
+    dbcountcol=mydb['count']
+    dbcountcol.delete_many({})
+    dbcountcol.insert_one({'id':time.time(),'status':'init'})
+
     dbcol = mydb["states"]
     dbcol.delete_many({})
     for i in range(1,MaxUser+1):

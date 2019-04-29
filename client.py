@@ -22,10 +22,7 @@ def chooseFile():
     root = tk.Tk()
     root.withdraw()
     ... #限制文件类型
-    if debug:
-        filepath="C:/Users/lieber/Desktop/Apple won't like this... - Run MacOS on ANY PC.mp4"
-    else:
-        filepath = filedialog.askopenfilename(initialdir = "\\",title = "选择电影文件")
+    filepath = filedialog.askopenfilename(initialdir = "\\",title = "选择电影文件")
     del root
     return filepath
 
@@ -50,7 +47,7 @@ def getusefulId(filepath):
     return Id,Mateid
 
 
-def keepMPVSynchronize(server,Id,Mateid,filepath,HEARTTIME,debug=False):
+def keepMPVSynchronize(server,Id,Mateid,filepath,HEARTTIME):
 
     server=server+'/Port/%d'%Id
     clientname= 'client1' if Mateid== 1 else 'client2'
@@ -61,8 +58,7 @@ def keepMPVSynchronize(server,Id,Mateid,filepath,HEARTTIME,debug=False):
     # 打开mpv进程
    
     mp.slave_command('loadfile %s '%('"'+filepath+'"'))
-    if debug:
-        mp.slave_command('set window-scale 0.5')
+    mp.slave_command('set window-scale 0.8')
     mp.slave_command('set pause yes')
     mp.slave_command('seek 0 absolute')
 
@@ -71,9 +67,11 @@ def keepMPVSynchronize(server,Id,Mateid,filepath,HEARTTIME,debug=False):
         while True:
             timesleep(0.5)
             #告诉服务器 该client ready
+            print("Waitting for Your Mate!")
             rtext=post(server,data=postdata).text.strip()
             #待服务器ready后，返回
             if rtext!='None':
+                print("Your Mate is OnLine, Movie Start!")
                 if rtext.split(':')[0]=='ser-start':
                     # print(rtext)
                     deleta=timetime()-float(rtext.split(':')[1])
@@ -169,13 +167,13 @@ if __name__ == '__main__':
     with open('config.ini','r',encoding='utf-8') as file:
         server=file.readline().strip()[1:]  #sig问题
         HEARTTIME=eval(file.readline().strip())
-        debug=True if file.readline().strip() =='Debug' else False
 
     mp = MpvProcess()
+    timesleep(1)
 
     filepath=chooseFile()
-    print(filepath)
+    # print(filepath)
     Id,Mateid=getusefulId(filepath)
-    print(Id,Mateid)
+    # print(Id,Mateid)
 
-    keepMPVSynchronize(server,Id,Mateid,filepath,HEARTTIME,debug)
+    keepMPVSynchronize(server,Id,Mateid,filepath,HEARTTIME)
