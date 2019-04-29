@@ -11,7 +11,6 @@ app = Flask(__name__)
 ...
 #可以分析两者那些不同 然后更新不同即可
 def stateUpdate(id,oldstate,newstate):
-    newstate['lastupdatetime']=int(time.time())
     dbcol.update_one({"id":id},{"$set":newstate})
 
 
